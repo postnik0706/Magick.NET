@@ -10,7 +10,9 @@
 // either express or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
+using System;
 using System.IO;
+using System.Text;
 using ImageMagick;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -64,6 +66,37 @@ namespace Magick.NET.Tests
                         Assert.IsNotNull(profile);
                         TestValue(profile, IptcTag.Headline, "Magick.NET");
                         TestValue(profile, IptcTag.CopyrightNotice, "Copyright.NET");
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ShouldBeAbleToReadAndWriteExifValues()
+        {
+            using (IMagickImage input = new MagickImage(Files.MagickNETIconPNG))
+            {
+                var profile = input.GetExifProfile();
+                Assert.IsNull(profile);
+
+                profile = new ExifProfile();
+                profile.SetValue(ExifTag.UserComment, Encoding.ASCII.GetBytes("Magick.NET"));
+                profile.SetValue(ExifTag.XPComment, Encoding.ASCII.GetBytes("Magick.NET"));
+
+                input.SetProfile(profile);
+
+                using (MemoryStream memStream = new MemoryStream())
+                {
+                    input.Format = MagickFormat.Tiff;
+                    input.Write(memStream);
+
+                    memStream.Position = 0;
+                    using (IMagickImage output = new MagickImage(memStream))
+                    {
+                        profile = output.GetExifProfile();
+                        Assert.IsNotNull(profile);
+                        TestValue(profile, ExifTag.UserComment, "Magick.NET");
+                        TestValue(profile, ExifTag.XPComment, "Copyright.NET");
                     }
                 }
             }
@@ -130,6 +163,13 @@ namespace Magick.NET.Tests
         }
 
         private static void TestValue(IIptcProfile profile, IptcTag tag, string expectedValue)
+        {
+            var value = profile.GetValue(tag);
+            Assert.IsNotNull(value);
+            Assert.AreEqual(expectedValue, value.Value);
+        }
+
+        private static void TestValue(IExifProfile profile, ExifTag<byte[]> tag, string expectedValue)
         {
             var value = profile.GetValue(tag);
             Assert.IsNotNull(value);
