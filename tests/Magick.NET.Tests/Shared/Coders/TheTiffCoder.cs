@@ -71,33 +71,21 @@ namespace Magick.NET.Tests
         }
 
         [TestMethod]
-        public void ShouldBeAbleToReadAndWriteExifValues()
+        public void ShouldBeAbleToReadAndWriteExifComment()
         {
             using (IMagickImage input = new MagickImage(Files.MagickNETIconPNG))
             {
-                var profile = input.GetExifProfile();
-                Assert.IsNull(profile);
-
-                profile = new ExifProfile();
-                profile.SetValue(ExifTag.UserComment, Encoding.ASCII.GetBytes("Magick.NET"));
-                profile.SetValue(ExifTag.XPComment, Encoding.ASCII.GetBytes("Magick.NET"));
-                profile.SetValue(ExifTag.ImageDescription, "Magick.NET");
-
-                input.SetProfile(profile);
-
                 using (MemoryStream memStream = new MemoryStream())
                 {
                     input.Format = MagickFormat.Tiff;
+                    input.Comment = "Magick.NET";
                     input.Write(memStream);
 
                     memStream.Position = 0;
                     using (IMagickImage output = new MagickImage(memStream))
                     {
-                        profile = output.GetExifProfile();
-                        Assert.IsNotNull(profile);
-                        TestValue(profile, ExifTag.UserComment, "Magick.NET");
-                        TestValue(profile, ExifTag.XPComment, "Copyright.NET");
-                        TestValue(profile, ExifTag.ImageDescription, "Magick.NET");
+                        var comment = output.Comment;
+                        Assert.IsNotNull(comment);
                     }
                 }
             }
