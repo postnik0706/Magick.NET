@@ -10,7 +10,6 @@
 // either express or implied. See the License for the specific language governing permissions
 // and limitations under the License.
 
-using System;
 using System.IO;
 using System.Text;
 using ImageMagick;
@@ -82,6 +81,7 @@ namespace Magick.NET.Tests
                 profile = new ExifProfile();
                 profile.SetValue(ExifTag.UserComment, Encoding.ASCII.GetBytes("Magick.NET"));
                 profile.SetValue(ExifTag.XPComment, Encoding.ASCII.GetBytes("Magick.NET"));
+                profile.SetValue(ExifTag.ImageDescription, "Magick.NET");
 
                 input.SetProfile(profile);
 
@@ -97,6 +97,7 @@ namespace Magick.NET.Tests
                         Assert.IsNotNull(profile);
                         TestValue(profile, ExifTag.UserComment, "Magick.NET");
                         TestValue(profile, ExifTag.XPComment, "Copyright.NET");
+                        TestValue(profile, ExifTag.ImageDescription, "Magick.NET");
                     }
                 }
             }
@@ -169,7 +170,7 @@ namespace Magick.NET.Tests
             Assert.AreEqual(expectedValue, value.Value);
         }
 
-        private static void TestValue(IExifProfile profile, ExifTag<byte[]> tag, string expectedValue)
+        private static void TestValue<T>(IExifProfile profile, ExifTag<T> tag, string expectedValue)
         {
             var value = profile.GetValue(tag);
             Assert.IsNotNull(value);
